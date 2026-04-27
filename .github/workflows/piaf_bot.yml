@@ -1,0 +1,32 @@
+name: Bot Piaf
+
+on:
+  schedule:
+    # 09:00 UTC = 06:00 hora Argentina (UTC-3)
+    # El "1" al final = lunes (0=domingo, 1=lunes, ... 6=sabado)
+    - cron: '0 9 * * 1'
+  workflow_dispatch:  # permite correrlo manualmente desde GitHub
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Ejecutar scraper y enviar mail
+        env:
+          MAIL_REMITENTE: ${{ secrets.MAIL_REMITENTE }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_DESTINATARIO: ${{ secrets.MAIL_DESTINATARIO }}
+        run: python bot_piaf_IE.py
